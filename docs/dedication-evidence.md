@@ -15,4 +15,4 @@ Contract `2026-10-20.1` allows the four dedication fields on `choose-payment`. T
 
 The builder does not presume these values prefill `choose-dedication` or survive `choose-campaign`. Those links retain their prior route allowlists. `paymentMethod` is recorded as observed in the supplied URL with unverified behavior, but the builder does not select a payment method or calculate `amountBilled` automatically.
 
-Dedication values remain in browser memory and appear in payment URLs, copied content, and downloaded packages/scenarios. They are not posted to this application's server or persisted. Use fictional names and example.com addresses for the public demo. The follow-up user request explicitly adds these dedication fields to the original spec's scope.
+Dedication values remain in browser memory and appear in payment URLs, copied content, and downloaded packages. They are not posted to this application's server or persisted. Use fictional names and example.com addresses for the public demo. The follow-up user request explicitly adds these dedication fields to the original spec's scope.

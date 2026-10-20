@@ -190,31 +190,7 @@ export function generatePackage(input, contract, now = new Date()) {
         return { route, label: schema.label, url: url.href };
     });
     const lint_results = lintPackage(generated_links, contract);
-    const parameter_summary = generated_links.flatMap((link) =>
-        [...new URL(link.url).searchParams].map(([name, value]) => ({
-            route: link.route,
-            name,
-            value,
-            role: owns(contract.parameters, name)
-                ? contract.parameters[name].role
-                : 'Unrecognized attribution; effect unverified',
-            status: owns(contract.parameters, name) ? contract.parameters[name].status : ['unknown'],
-            evidence: owns(contract.parameters, name)
-                ? contract.parameters[name].evidence
-                : 'No evidence in the current contract',
-        })),
-    );
-    const expected = Object.fromEntries(new URL(generated_links[0].url).searchParams);
-    // Stable content hash disambiguates campaign slugs and produces reproducible scenario identifiers.
-    let hash = 2166136261;
-    for (const char of JSON.stringify(generated_links))
-        hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
-    const slug =
-        campaign
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '')
-            .slice(0, 50) || 'campaign';
+    const parameter_summary = summarizeLinks(generated_links, contract);
     return {
         contract_version: contract.contract_version,
         campaign_label: String(input.campaign_label ?? '').trim(),
@@ -222,24 +198,6 @@ export function generatePackage(input, contract, now = new Date()) {
         generated_links,
         parameter_summary,
         lint_results,
-        test_scenario: {
-            scenario_id: `${slug}-${input.frequency}-${amount}-${hash.toString(16)}`,
-            contract_version: contract.contract_version,
-            target_route: '/choose-payment',
-            expected,
-            links: generated_links.map((link) => ({
-                target_route: `/${link.route}`,
-                url: link.url,
-                expected: Object.fromEntries(new URL(link.url).searchParams),
-            })),
-            checks: [
-                'Confirm decoded parameters match expected values.',
-                'Manually inspect the intended donation amount, frequency and campaign before proceeding.',
-                'Check shared parameters during navigation.',
-            ],
-            stop_before_payment: true,
-            live_behavior_verified: false,
-        },
         generated_at: now.toISOString(),
     };
 }
@@ -492,17 +450,33 @@ export function lintPackage(links, contract) {
             'Static contract validation only',
             contract.contract_version,
             'Static checks cannot establish live visible effects or server acceptance.',
-            'Use the scenario for a manual review; stop before submitting payment.',
+            'Review the parameters manually before sharing the link.',
         ),
     );
     return results;
 }
 
-export function brokenFixture(pkg) {
-    const links = pkg.generated_links.map((link) => ({ ...link }));
-    if (links.length === 1) links.push({ ...links[0] });
-    const url = new URL(links[1].url);
-    url.searchParams.delete('campaignName');
-    links[1].url = url.href;
-    return links;
+// Preserve every occurrence (including duplicates) for inspection, even on rejected destinations.
+export function summarizeLinks(links, contract) {
+    return links.flatMap((link, index) => {
+        let url;
+        try {
+            url = new URL(typeof link === 'string' ? link : link.url);
+        } catch {
+            return [];
+        }
+        return [...url.searchParams].map(([name, value]) => ({
+            link: index + 1,
+            route: url.pathname.slice(1),
+            name,
+            value,
+            role: owns(contract.parameters, name)
+                ? contract.parameters[name].role
+                : 'Unrecognized parameter; effect unverified',
+            status: owns(contract.parameters, name) ? contract.parameters[name].status : ['unknown'],
+            evidence: owns(contract.parameters, name)
+                ? contract.parameters[name].evidence
+                : 'No evidence in the current contract',
+        }));
+    });
 }

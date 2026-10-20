@@ -6,7 +6,7 @@ import {
     lintPackage,
     normalizeAmount,
     parseAttribution,
-    brokenFixture,
+    summarizeLinks,
     InputError,
 } from '../../public/js/link-engine.js';
 const contract = JSON.parse(
@@ -46,9 +46,6 @@ test('monthly $60 generates consistent payment and dedication links', () => {
     );
     assert.equal(errors(pkg.lint_results).length, 0);
     assert.equal(pkg.contract_version, contract.contract_version);
-    assert.equal(pkg.test_scenario.stop_before_payment, true);
-    assert.equal(pkg.test_scenario.live_behavior_verified, false);
-    assert.equal(pkg.test_scenario.links.length, 2);
     assert.equal(pkg.generated_at, '2026-10-20T12:00:00.000Z');
 });
 test('one-time $100 without dedication emits no dedication flag or link', () => {
@@ -60,7 +57,6 @@ test('campaign encoding preserves ampersands, Unicode, plus, equals, percent and
     const name = 'Kenya & café + 50% = <example> 🌱';
     const pkg = build({ campaignName: name });
     assert.equal(new URL(pkg.generated_links[0].url).searchParams.get('campaignName'), name);
-    assert.equal(pkg.test_scenario.expected.campaignName, name);
     assert.ok(pkg.generated_links[0].url.includes('%26'));
     assert.ok(pkg.parameter_summary.some((item) => item.name === 'campaignName' && item.value === name));
 });
@@ -89,7 +85,10 @@ for (const [input, expected] of [
 ]) {
     test(`normalizes ${input} to ${expected} without rounding`, () => {
         assert.equal(normalizeAmount(input, contract.parameters.amountChosen), expected);
-        assert.equal(build({ amountChosen: input }).test_scenario.expected.amountChosen, expected);
+        assert.equal(
+            new URL(build({ amountChosen: input }).generated_links[0].url).searchParams.get('amountChosen'),
+            expected,
+        );
     });
 }
 test('rejects invalid frequency, campaign, flag and return route', () => {
@@ -209,19 +208,11 @@ for (const name of contract.shared_parameters) {
         assert.ok(codes(lintPackage(links, contract)).includes('CROSS_LINK_MISMATCH'));
     });
 }
-test('broken fixture is detected without mutating the original package', () => {
-    for (const dedicated of [true, false]) {
-        const pkg = build({ dedicated });
-        const before = JSON.stringify(pkg);
-        const result = lintPackage(brokenFixture(pkg), contract);
-        assert.ok(codes(result).includes('MISSING_PARAMETER'));
-        assert.ok(codes(result).includes('CROSS_LINK_MISMATCH'));
-        assert.equal(JSON.stringify(pkg), before);
-    }
-});
-test('scenario is reproducible and changes with link content', () => {
-    assert.equal(build().test_scenario.scenario_id, build().test_scenario.scenario_id);
-    assert.notEqual(build().test_scenario.scenario_id, build({ dedicated: false }).test_scenario.scenario_id);
+test('generated packages contain links and validation without a test scenario', () => {
+    const pkg = build();
+    assert.equal(Object.hasOwn(pkg, 'test_scenario'), false);
+    assert.ok(pkg.parameter_summary.length);
+    assert.ok(pkg.lint_results.length);
 });
 test('every lint result includes the complete review contract', () => {
     const results = lintPackage(
@@ -256,7 +247,6 @@ test('dedication details are encoded only on the payment route and included in e
     const payment = new URL(pkg.generated_links[0].url);
     for (const [name, value] of Object.entries(details)) {
         assert.equal(payment.searchParams.get(name), value);
-        assert.equal(pkg.test_scenario.expected[name], value);
         assert.ok(pkg.parameter_summary.some((item) => item.name === name && item.value === value));
         for (const link of pkg.generated_links.slice(1))
             assert.equal(new URL(link.url).searchParams.has(name), false);
@@ -291,4 +281,46 @@ test('linter detects malformed or disabled dedication details in pasted URLs', (
     );
     assert.ok(codes(result).includes('INVALID_EMAIL'));
     assert.ok(codes(result).includes('DEDICATION_NOT_ENABLED'));
+});
+
+test('manual inspection preserves duplicates, Unicode and unknown values with link identity', () => {
+    const rows = summarizeLinks(
+        [
+            url(
+                'campaignName=Example+%26+caf%C3%A9&amountChosen=60&amountChosen=100&utm_campaign=%3Cexample%3E',
+            ),
+            url('frequency=once'),
+        ],
+        contract,
+    );
+    assert.deepEqual(
+        rows.filter((row) => row.name === 'amountChosen').map((row) => row.value),
+        ['60', '100'],
+    );
+    assert.equal(rows[0].value, 'Example & café');
+    assert.equal(rows[0].route, 'choose-payment');
+    assert.equal(rows.at(-1).link, 2);
+    assert.equal(rows.at(-2).value, '<example>');
+    assert.deepEqual(rows.at(-2).status, ['unknown']);
+});
+test('manual inspection tolerates malformed URLs while preserving parsable rejected destinations', () => {
+    const rows = summarizeLinks(
+        ['not a URL', 'https://other.example/unknown?frequency=weekly&constructor=test'],
+        contract,
+    );
+    assert.equal(rows.length, 2);
+    assert.equal(rows[0].link, 2);
+    assert.equal(rows[0].value, 'weekly');
+    assert.deepEqual(rows[1].status, ['unknown']);
+    assert.deepEqual(summarizeLinks([], contract), []);
+});
+test('generated and pasted links use the same parameter inspection', () => {
+    const pkg = build();
+    assert.deepEqual(
+        pkg.parameter_summary,
+        summarizeLinks(
+            pkg.generated_links.map((link) => link.url),
+            contract,
+        ),
+    );
 });

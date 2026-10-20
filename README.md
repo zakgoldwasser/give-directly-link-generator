@@ -1,6 +1,6 @@
 # Campaign Link Studio
 
-An independent fundraising operations work sample built with **Laravel 13, PHP 8.4+, Blade, and vanilla JavaScript**. It implements [the supplied specification](spec.md.md): create a synthetic campaign link, inspect its parameters, lint a package, and export a scenario that explicitly stops before payment.
+An independent fundraising operations work sample built with **Laravel 13, PHP 8.4+, Blade, and vanilla JavaScript**. It implements [the supplied specification](spec.md.md) with the requested follow-up simplification: a single page with Create Link and Validate link modes. Generated and pasted links show decoded parameters and static validation inline. Test scenario generation and downloads have been removed.
 
 This is not affiliated with or approved by GiveDirectly. It does not scrape, fetch donation URLs, submit payment forms, or establish that a generated link is accepted by a live server.
 
@@ -26,15 +26,14 @@ For this workspace, portable PHP and Composer were downloaded into the ignored `
 
 The portable tools are local conveniences, not distributed dependencies. Other clones should install PHP and Composer normally. Point a production web server at `public/`, keep `APP_DEBUG=false`, and allow Laravel to write its compiled views and bootstrap cache. There is no deployment or publishing integration.
 
-## Five compact views
+## One page, two modes
 
-1. **Create link:** synthetic campaign, internal label, destination label, frequency, preset/custom amount, dedication, optional campaign selection and attribution. Selecting dedication expands recipient name, recipient email, optional message, and sender name fields.
-2. **Review parameters:** safely encoded copyable URLs, decoded parameter tables, per-parameter evidence/status, and a JSON package download.
-3. **Validation results:** local linting of generated or pasted URLs, structured errors/warnings/corrections, cross-link comparison, and a deliberately broken fixture.
-4. **Test scenario:** copy/download reproducible JSON, expected parameters for every route, contract version, and `stop_before_payment: true`.
-5. **Evidence:** the source-observation register, local assumptions, verification vocabulary, and contract history.
+- **Create Link:** enter campaign details, frequency, amount, and optional dedication. Generate copyable links, then see all decoded parameters and validation results directly below the form. Download the link package as JSON.
+- **Validate link:** manually paste a URL and validate it. Decoded parameters appear below the input, followed by errors, warnings, and corrections. Multiple links can be compared by entering one per line. Duplicate query values remain visible as separate rows; unknown parameters retain their evidence status. Invalid URLs show an error and an empty parameter state.
 
-Changes to campaign settings invalidate the previous package and its exports. Pasted or broken-fixture lint results are separate from the original generated package. The **Restore generated links** action returns to that original package.
+Evidence and assumptions are available in a collapsed section at the bottom of the same page. There are no separate review, results, or scenario views. Packages no longer contain a test scenario.
+
+The two modes preserve their own input and result state. Changes to campaign settings invalidate its generated package and export without overwriting pasted links. Editing a pasted link clears its old parameters and results until it is validated again.
 
 Internal and destination labels are metadata only. A destination label does **not** select a live donation program. Unknown attribution is preserved in every generated link, visibly marked unverified, and cannot overwrite reserved donation parameters. Attribution values are plain text, one `key=value` per line; ampersands and equals signs in values are encoded safely.
 
@@ -58,7 +57,7 @@ Laravel serves the Blade page with the escaped contract embedded in an HTML data
 
 Campaign and dedication data stay in browser memory until explicitly copied or downloaded. Dedication values are included in payment URLs and exports; use fictional names and example.com addresses in this public demo. Unchecking dedication excludes its values from generated links and exports. There are no campaign POST endpoints, persistence tables, accounts, background workers, localStorage, cookies, third-party scripts, or analytics. The browser Content Security Policy blocks outbound connections and form submissions. Laravel logs to stderr and does not log generated packages. A hosting server's access logs are separate; avoid adding query/body logging that could capture user-supplied values.
 
-The package includes version, labels, generated links, parameter summaries with evidence, structured lint results, a test scenario, and a UTC generation timestamp. Scenario IDs are deterministic from link content; their hash is an identifier, not a cryptographic guarantee. The JSON scenario is a handoff format, **not an automatically executable live-site test**.
+The package includes version, labels, generated links, parameter summaries with evidence, structured lint results, and a UTC generation timestamp. Generation and manual validation share the same query inspection and linting modules.
 
 ## Verify
 
@@ -81,20 +80,19 @@ $env:PHP_BINARY = (Resolve-Path .tools/php/php.exe).Path
 npm.cmd run test:browser
 ```
 
-- Node tests exercise the same domain module shipped to the browser: amount boundaries/truncation, encoding/Unicode, valid and invalid frequency/flags, unknown and duplicate parameters, route rules, consistency, stable scenarios, and broken fixtures.
+- Node tests exercise the same domain module shipped to the browser: amount boundaries/truncation, encoding/Unicode, valid and invalid frequency/flags, unknown and duplicate parameters, route rules, consistency, manual parameter inspection, and broken fixtures.
 - PHPUnit tests exercise Laravel rendering, exact contract loading, privacy/security headers, absence of campaign/file-write routes, and non-reflection of query input.
 - Playwright tests exercise desktop and mobile workflows, exports, clipboard behavior, form errors, literal rendering of untrusted text, stale-package invalidation, keyboard navigation, and layout overflow. External network requests fail the browser tests.
 - Screenshots and failure traces are written to ignored `test-results/`. CI runs the same checks against the local application only.
 
-The intentionally broken static package is in `tests/fixtures/broken-package.json`. Its second link lacks `campaignName`; the linter reports both `MISSING_PARAMETER` and `CROSS_LINK_MISMATCH`. The UI creates the same defect from the user's current synthetic package without altering the original.
+The intentionally broken static package is in `tests/fixtures/broken-package.json`. Its second link lacks `campaignName`; the linter reports both `MISSING_PARAMETER` and `CROSS_LINK_MISMATCH`. This is a regression-test fixture, not a separate product workflow.
 
-## Three-minute demonstration
+## Quick demonstration
 
-1. Keep **Example Year-End Campaign**, monthly, and $60. Enable dedication, enter fictional recipient/sender names and an example.com recipient email, and optionally add a message.
-2. Generate the package and inspect the payment/dedication links and decoded values.
-3. Review the contract version and evidence statuses; explain that they are not live verification.
-4. Open validation and choose **Try a broken fixture**. Show the missing campaign and cross-link mismatch, then restore the generated links.
-5. Add `utm_campaign=example-year-end` under attribution and regenerate. Show that the value is preserved but visibly unverified.
-6. Download the scenario and point out `stop_before_payment: true`.
+1. In **Create Link**, keep the example campaign, monthly, and $60. Optionally enable dedication and enter fictional recipient/sender details.
+2. Generate the package. Inspect the links, decoded parameters and validation results below the form; copy the payment URL.
+3. Switch to **Validate link**, paste that URL and validate it. Inspect its decoded values and results below the input.
+4. Add a duplicate amount parameter or change frequency to weekly and validate again to see the corresponding errors.
+5. Expand evidence and assumptions to see what is reported in the source and what remains unverified.
 
-The result is a reproducible fundraising-to-engineering handoff with explicit uncertainty. Production server acceptance, real campaign validity, and live navigation behavior remain outside this demo's claims.
+Production server acceptance, real campaign validity, and live navigation behavior remain outside this demo's claims.

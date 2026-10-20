@@ -854,33 +854,7 @@ table code {
     color: var(--green);
     font-size: 10px;
 }
-.stop-banner {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    background: #eaf0de;
-    border: 1px solid #dce6cd;
-    border-radius: 8px;
-    padding: 16px 20px;
-    font-size: 12px;
-    line-height: 1.7;
-    margin-bottom: 18px;
-}
-.stop-banner span {
-    color: #596b4e;
-}
-pre#scenario-json {
-    background: #203e34;
-    color: #d2e9bb;
-    border-radius: 14px;
-    padding: 26px;
-    font:
-        12px/1.8 Consolas,
-        monospace;
-    overflow: auto;
-    max-height: 650px;
-    tab-size: 2;
-}
+
 .evidence-note {
     margin-bottom: 24px;
 }
@@ -1125,10 +1099,7 @@ pre#scenario-json {
     .package-meta {
         font-size: 11px;
     }
-    pre#scenario-json {
-        padding: 18px;
-        font-size: 11px;
-    }
+
     .field small {
         font-size: 10px;
     }
@@ -1166,4 +1137,89 @@ pre#scenario-json {
 }
 .dedication-fields .rule-note {
     margin: 0 0 18px;
+}
+
+/* Both tools keep their inputs, decoded parameters and results on the same page. */
+.workspace {
+    max-width: 1100px;
+}
+.mode-nav {
+    max-width: 420px;
+}
+.mode-nav button[aria-pressed='true'] {
+    color: var(--green);
+    border-bottom-color: var(--green);
+    background: #edf1e8;
+}
+.inline-output {
+    margin-top: 30px;
+}
+.inline-output .section-heading {
+    margin-bottom: 16px;
+}
+.inline-output .lint-summary {
+    margin-top: 0;
+}
+.parameters-empty {
+    padding: 0 24px 20px;
+    color: var(--muted);
+    font-size: 13px;
+}
+.evidence-disclosure {
+    margin-top: 32px;
+    border-top: 1px solid var(--line);
+    padding-top: 20px;
+}
+.evidence-disclosure > summary {
+    cursor: pointer;
+    padding: 12px 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+.evidence-disclosure[open] > summary {
+    margin-bottom: 16px;
+}
+#validation-status {
+    margin: 16px 0 0;
+}
+@media (max-width: 650px) {
+    .mode-nav button {
+        flex: 1;
+    }
+}
+@media (max-width: 650px) {
+    .parameter-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+    .parameter-table,
+    .parameter-table tbody,
+    .parameter-table tr {
+        display: block;
+        width: 100%;
+    }
+    .parameter-table tr {
+        border-top: 1px solid var(--line);
+        padding: 12px 0;
+    }
+    .parameter-table th,
+    .parameter-table td {
+        display: block;
+        width: 100%;
+        max-width: none;
+        border: 0;
+        padding: 6px 18px;
+    }
+    .parameter-table th::before,
+    .parameter-table td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 3px;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--muted);
+    }
 }

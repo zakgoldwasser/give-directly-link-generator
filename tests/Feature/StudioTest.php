@@ -8,13 +8,14 @@ use Illuminate\Foundation\Testing\TestCase;
 
 final class StudioTest extends TestCase
 {
-    public function test_studio_renders_all_five_views_and_the_exact_versioned_contract(): void
+    public function test_studio_renders_two_modes_and_the_exact_versioned_contract(): void
     {
         $response = $this->get('/');
         $response->assertOk()->assertSee('Campaign Link Studio')->assertSee('Synthetic demo');
-        foreach (['create', 'review', 'validation', 'scenario', 'evidence'] as $view) {
+        foreach (['create', 'validate'] as $view) {
             $response->assertSee('id="view-'.$view.'"', false);
         }
+        $response->assertSee('Create Link')->assertSee('Validate link')->assertDontSee('Test scenario')->assertDontSee('id="view-review"', false);
         $dom = new DOMDocument;
         @$dom->loadHTML($response->getContent());
         $node = (new DOMXPath($dom))->query('//*[@id="contract-data"]')->item(0);

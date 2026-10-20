@@ -1,5 +1,10 @@
 # Contract changelog
 
+## Interface update — Create or Validate
+
+Replaced the five-view workflow with two modes on one page. Both generated and manually entered links show decoded parameter tables followed by validation results inline. Removed test scenario generation, identifiers, copy/download actions, and the scenario property from package exports. The evidence register remains in a collapsed section. The parameter contract remains 2026-10-20.1 because route and parameter rules have not changed.
+
+
 ## 2026-10-20.1 — Expand dedication details
 
 **What changed:** selecting dedication expands recipient name, recipient email, optional message, and sender name fields. The builder validates required details and safely encodes them into payment links, summaries, and scenario exports. Disabling dedication excludes all its details. The original dedication and campaign-selection route schemas remain unchanged. The supplied URL's paymentMethod field is recorded with unverified behavior but is not generated automatically.
