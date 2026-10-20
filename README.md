@@ -28,7 +28,7 @@ The portable tools are local conveniences, not distributed dependencies. Other c
 
 ## Five compact views
 
-1. **Create link:** synthetic campaign, internal label, destination label, frequency, preset/custom amount, dedication, optional campaign selection and attribution.
+1. **Create link:** synthetic campaign, internal label, destination label, frequency, preset/custom amount, dedication, optional campaign selection and attribution. Selecting dedication expands recipient name, recipient email, optional message, and sender name fields.
 2. **Review parameters:** safely encoded copyable URLs, decoded parameter tables, per-parameter evidence/status, and a JSON package download.
 3. **Validation results:** local linting of generated or pasted URLs, structured errors/warnings/corrections, cross-link comparison, and a deliberately broken fixture.
 4. **Test scenario:** copy/download reproducible JSON, expected parameters for every route, contract version, and `stop_before_payment: true`.
@@ -40,7 +40,7 @@ Internal and destination labels are metadata only. A destination label does **no
 
 ## Evidence and uncertainty
 
-The initial version is `2026-10-20`, stored in `resources/contracts/2026-10-20.json`. Its provenance is the supplied spec's summaries of HTML and JavaScript. **The original HTML/JavaScript evidence excerpts were not provided in this repository.** References therefore point to the relevant spec sections rather than invented source filenames or line numbers.
+The current version is `2026-10-20.1`, stored in `resources/contracts/2026-10-20.1.json`; the initial `2026-10-20` version is retained for historical packages. Its provenance is the supplied spec's summaries of HTML and JavaScript. **The original HTML/JavaScript evidence excerpts were not provided in this repository.** References therefore point to the relevant spec sections rather than invented source filenames or line numbers. The dedication extension additionally uses the user-reported form labels and payment URL documented in [dedication evidence](docs/dedication-evidence.md). These fields are marked `propagated_to_route`, without claiming independently verified server behavior.
 
 - **Source-observed (reported by the spec):** `once`/`monthly`; client writes to `frequency`, `amountChosen`, and `dedicated`; custom amounts from $1 to below $1,000,000; truncation to two decimal places; campaign/return-route propagation.
 - **Behavior-verified on the live donation site:** **none**. No parameter has `visible_effect_verified` or `server_behavior_verified` status. Passing local tests proves this application's behavior against its fixtures, not the destination site's behavior.
@@ -56,7 +56,7 @@ See [the contract changelog](CHANGELOG.md) for what changed, why, and the verifi
 
 Laravel serves the Blade page with the escaped contract embedded in an HTML data attribute. The pure JavaScript module `public/js/link-engine.js` owns generation and linting; `public/js/studio.js` connects it to accessible native form controls and safe DOM rendering. `URL` and `URLSearchParams` handle query encoding. Decimal strings and integer comparisons avoid floating-point rounding at the amount boundaries.
 
-Campaign data stays in browser memory until explicitly copied or downloaded. There are no campaign POST endpoints, persistence tables, accounts, background workers, localStorage, cookies, third-party scripts, or analytics. The browser Content Security Policy blocks outbound connections and form submissions. Laravel logs to stderr and does not log generated packages. A hosting server's access logs are separate; avoid adding query/body logging that could capture user-supplied values.
+Campaign and dedication data stay in browser memory until explicitly copied or downloaded. Dedication values are included in payment URLs and exports; use fictional names and example.com addresses in this public demo. Unchecking dedication excludes its values from generated links and exports. There are no campaign POST endpoints, persistence tables, accounts, background workers, localStorage, cookies, third-party scripts, or analytics. The browser Content Security Policy blocks outbound connections and form submissions. Laravel logs to stderr and does not log generated packages. A hosting server's access logs are separate; avoid adding query/body logging that could capture user-supplied values.
 
 The package includes version, labels, generated links, parameter summaries with evidence, structured lint results, a test scenario, and a UTC generation timestamp. Scenario IDs are deterministic from link content; their hash is an identifier, not a cryptographic guarantee. The JSON scenario is a handoff format, **not an automatically executable live-site test**.
 
@@ -90,7 +90,7 @@ The intentionally broken static package is in `tests/fixtures/broken-package.jso
 
 ## Three-minute demonstration
 
-1. Keep **Example Year-End Campaign**, monthly, $60, and dedication enabled.
+1. Keep **Example Year-End Campaign**, monthly, and $60. Enable dedication, enter fictional recipient/sender names and an example.com recipient email, and optionally add a message.
 2. Generate the package and inspect the payment/dedication links and decoded values.
 3. Review the contract version and evidence statuses; explain that they are not live verification.
 4. Open validation and choose **Try a broken fixture**. Show the missing campaign and cross-link mismatch, then restore the generated links.

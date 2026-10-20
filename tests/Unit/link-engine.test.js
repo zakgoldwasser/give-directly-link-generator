@@ -10,7 +10,7 @@ import {
     InputError,
 } from '../../public/js/link-engine.js';
 const contract = JSON.parse(
-    readFileSync(new URL('../../resources/contracts/2026-10-20.json', import.meta.url)),
+    readFileSync(new URL('../../resources/contracts/2026-10-20.1.json', import.meta.url)),
 );
 const base = {
     campaignName: 'Example Year-End Campaign',
@@ -19,6 +19,9 @@ const base = {
     frequency: 'monthly',
     amountChosen: '60',
     dedicated: true,
+    dedicateToName: 'Example Honoree',
+    dedicateToEmail: 'honoree@example.com',
+    dedicateFromName: 'Example Sender',
 };
 const build = (changes = {}) =>
     generatePackage({ ...base, ...changes }, contract, new Date('2026-10-20T12:00:00Z'));
@@ -27,7 +30,7 @@ const codes = (results) => results.map((item) => item.rule_id);
 const url = (query) => `${contract.origin}/choose-payment?${query}`;
 
 test('loads a versioned contract with evidence and no live verification claims', () => {
-    assert.equal(contract.contract_version, '2026-10-20');
+    assert.equal(contract.contract_version, '2026-10-20.1');
     for (const parameter of Object.values(contract.parameters)) {
         assert.ok(parameter.evidence);
         assert.ok(parameter.status.every((status) => contract.statuses.includes(status)));
@@ -233,8 +236,59 @@ test('every lint result includes the complete review contract', () => {
 
 test('saved broken package fixture exposes a missing campaign and cross-link mismatch', () => {
     const fixture = JSON.parse(readFileSync(new URL('../fixtures/broken-package.json', import.meta.url)));
-    assert.equal(fixture.contract_version, contract.contract_version);
-    const result = lintPackage(fixture.generated_links, contract);
+    const fixtureContract = JSON.parse(
+        readFileSync(new URL(`../../resources/contracts/${fixture.contract_version}.json`, import.meta.url)),
+    );
+    assert.equal(fixtureContract.contract_version, '2026-10-20');
+    const result = lintPackage(fixture.generated_links, fixtureContract);
     assert.ok(codes(result).includes('MISSING_PARAMETER'));
     assert.ok(codes(result).includes('CROSS_LINK_MISMATCH'));
+});
+
+test('dedication details are encoded only on the payment route and included in exports', () => {
+    const details = {
+        dedicateToName: 'Example & café',
+        dedicateToEmail: 'example+honoree@example.com',
+        dedicateFromName: 'Example + Sender',
+        dedicateToMessage: 'Thank you & welcome!\n<example> 🌱',
+    };
+    const pkg = build({ ...details, include_campaign: true, back: 'choose-payment' });
+    const payment = new URL(pkg.generated_links[0].url);
+    for (const [name, value] of Object.entries(details)) {
+        assert.equal(payment.searchParams.get(name), value);
+        assert.equal(pkg.test_scenario.expected[name], value);
+        assert.ok(pkg.parameter_summary.some((item) => item.name === name && item.value === value));
+        for (const link of pkg.generated_links.slice(1))
+            assert.equal(new URL(link.url).searchParams.has(name), false);
+    }
+    assert.equal(errors(pkg.lint_results).length, 0);
+    assert.equal(payment.searchParams.has('paymentMethod'), false);
+    assert.equal(payment.searchParams.has('amountBilled'), false);
+});
+test('dedication message is optional and disabled dedication excludes every detail', () => {
+    assert.equal(new URL(build().generated_links[0].url).searchParams.has('dedicateToMessage'), false);
+    const pkg = build({ dedicated: false, dedicateToEmail: 'invalid', dedicateToMessage: 'Hidden message' });
+    const params = new URL(pkg.generated_links[0].url).searchParams;
+    for (const name of Object.keys(contract.dedication_fields)) assert.equal(params.has(name), false);
+    assert.ok(!JSON.stringify(pkg).includes('Hidden message'));
+});
+test('dedication requires names and a valid recipient email, and enforces local length limits', () => {
+    for (const changes of [
+        { dedicateToName: ' ' },
+        { dedicateFromName: '' },
+        { dedicateToEmail: '' },
+        { dedicateToEmail: 'bad-address' },
+        { dedicateToName: 'x'.repeat(121) },
+        { dedicateToMessage: 'x'.repeat(2001) },
+    ])
+        assert.throws(() => build(changes), InputError);
+    assert.throws(() => build({ attribution: [['dedicateToName', 'Override']] }), InputError);
+});
+test('linter detects malformed or disabled dedication details in pasted URLs', () => {
+    const result = lintPackage(
+        [url('frequency=monthly&amountChosen=60&campaignName=Example&dedicateToEmail=bad')],
+        contract,
+    );
+    assert.ok(codes(result).includes('INVALID_EMAIL'));
+    assert.ok(codes(result).includes('DEDICATION_NOT_ENABLED'));
 });

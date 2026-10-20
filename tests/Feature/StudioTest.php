@@ -19,7 +19,7 @@ final class StudioTest extends TestCase
         @$dom->loadHTML($response->getContent());
         $node = (new DOMXPath($dom))->query('//*[@id="contract-data"]')->item(0);
         $actual = json_decode($node->getAttribute('data-contract'), true, flags: JSON_THROW_ON_ERROR);
-        $expected = json_decode(file_get_contents(resource_path('contracts/2026-10-20.json')), true, flags: JSON_THROW_ON_ERROR);
+        $expected = json_decode(file_get_contents(resource_path('contracts/2026-10-20.1.json')), true, flags: JSON_THROW_ON_ERROR);
         $this->assertSame($expected, $actual);
     }
 

@@ -1153,3 +1153,17 @@ pre#scenario-json {
         }
     }
 }
+
+.dedication-fields {
+    margin-top: 18px;
+    padding: 20px 16px 0;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #fafbf8;
+}
+.dedication-fields legend {
+    padding: 0 6px;
+}
+.dedication-fields .rule-note {
+    margin: 0 0 18px;
+}

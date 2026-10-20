@@ -1,0 +1,258 @@
+{
+  "contract_version": "2026-10-20.1",
+  "origin": "https://donate.givedirectly.org",
+  "evidence_note": "The supplied specification summarizes HTML and JavaScript observations. Original source excerpts are not present in this repository. No live visible effects or server behavior have been independently verified. Dedication field propagation to choose-payment is additionally reported in a user-supplied generated URL; see docs/dedication-evidence.md.",
+  "statuses": [
+    "observed_in_source",
+    "written_by_client",
+    "propagated_to_route",
+    "visible_effect_verified",
+    "server_behavior_verified",
+    "analytics_only",
+    "unknown"
+  ],
+  "routes": {
+    "choose-payment": {
+      "label": "Payment",
+      "required": [
+        "frequency",
+        "amountChosen",
+        "campaignName"
+      ],
+      "optional": [
+        "amountBilled",
+        "dedicated",
+        "dedicateToName",
+        "dedicateToEmail",
+        "dedicateToMessage",
+        "dedicateFromName",
+        "paymentMethod"
+      ]
+    },
+    "choose-dedication": {
+      "label": "Dedication",
+      "required": [
+        "frequency",
+        "amountChosen",
+        "campaignName"
+      ],
+      "optional": [
+        "dedicated"
+      ]
+    },
+    "choose-campaign": {
+      "label": "Campaign selection",
+      "required": [
+        "frequency",
+        "amountChosen",
+        "campaignName"
+      ],
+      "optional": [
+        "back"
+      ]
+    }
+  },
+  "shared_parameters": [
+    "frequency",
+    "amountChosen",
+    "campaignName"
+  ],
+  "parameters": {
+    "frequency": {
+      "role": "Donation frequency",
+      "type": "enum",
+      "values": [
+        "once",
+        "monthly"
+      ],
+      "status": [
+        "observed_in_source",
+        "written_by_client"
+      ],
+      "evidence": "spec.md.md §§5–6: amount module summary"
+    },
+    "amountChosen": {
+      "role": "Selected donation amount in USD",
+      "type": "amount",
+      "minimum": "1",
+      "exclusive_maximum": "1000000",
+      "decimal_places": 2,
+      "status": [
+        "observed_in_source",
+        "written_by_client"
+      ],
+      "evidence": "spec.md.md §§5–6: client amount validation and truncation"
+    },
+    "amountBilled": {
+      "role": "Cleared when amount changes; downstream behavior unknown",
+      "type": "unknown",
+      "status": [
+        "observed_in_source",
+        "unknown"
+      ],
+      "evidence": "spec.md.md §5: amount-change handler summary; also present in the user-reported dedication payment URL (docs/dedication-evidence.md)"
+    },
+    "dedicated": {
+      "role": "Dedication selected",
+      "type": "true_flag",
+      "status": [
+        "observed_in_source",
+        "written_by_client"
+      ],
+      "evidence": "spec.md.md §§5–6: dedication toggle summary"
+    },
+    "focusOtherAmount": {
+      "role": "Opens custom amount input; destination route applicability unverified",
+      "type": "true_flag",
+      "status": [
+        "observed_in_source",
+        "written_by_client"
+      ],
+      "evidence": "spec.md.md §5: page-load and client handler summary"
+    },
+    "campaignName": {
+      "role": "Campaign carried between routes",
+      "type": "text",
+      "status": [
+        "observed_in_source",
+        "propagated_to_route"
+      ],
+      "evidence": "spec.md.md §5: server-rendered links summary"
+    },
+    "back": {
+      "role": "Return route from campaign selection",
+      "type": "route",
+      "values": [
+        "choose-payment",
+        "choose-dedication"
+      ],
+      "status": [
+        "observed_in_source",
+        "propagated_to_route"
+      ],
+      "evidence": "spec.md.md §§5–6; return-route allowlist is a local demo policy"
+    },
+    "utm_source": {
+      "role": "automated_browser_test suppresses browser-error log submission; other values unknown",
+      "type": "unknown",
+      "status": [
+        "observed_in_source",
+        "unknown"
+      ],
+      "evidence": "spec.md.md §5: instrumentation summary"
+    },
+    "amount": {
+      "role": "Conversion analytics after donation events; not a donation input",
+      "type": "analytics",
+      "status": [
+        "observed_in_source",
+        "analytics_only"
+      ],
+      "evidence": "spec.md.md §5: conversion analytics summary"
+    },
+    "donationId": {
+      "role": "Conversion transaction ID after donation events; not a donation input",
+      "type": "analytics",
+      "status": [
+        "observed_in_source",
+        "analytics_only"
+      ],
+      "evidence": "spec.md.md §5: conversion analytics summary"
+    },
+    "dedicateToName": {
+      "role": "Name of the person you wish to honor; live delivery and server validation unverified",
+      "type": "text",
+      "max_length": 120,
+      "status": [
+        "propagated_to_route"
+      ],
+      "evidence": "docs/dedication-evidence.md: user-reported form labels and generated payment URL (2026-10-20)"
+    },
+    "dedicateToEmail": {
+      "role": "Email of the person you wish to honor; live delivery and server validation unverified",
+      "type": "email",
+      "max_length": 254,
+      "status": [
+        "propagated_to_route"
+      ],
+      "evidence": "docs/dedication-evidence.md: user-reported form labels and generated payment URL (2026-10-20)"
+    },
+    "dedicateToMessage": {
+      "role": "Message (optional); live delivery and server validation unverified",
+      "type": "text",
+      "max_length": 2000,
+      "status": [
+        "propagated_to_route"
+      ],
+      "evidence": "docs/dedication-evidence.md: user-reported form labels and generated payment URL (2026-10-20)"
+    },
+    "dedicateFromName": {
+      "role": "Your name as it should appear to the person; live delivery and server validation unverified",
+      "type": "text",
+      "max_length": 120,
+      "status": [
+        "propagated_to_route"
+      ],
+      "evidence": "docs/dedication-evidence.md: user-reported form labels and generated payment URL (2026-10-20)"
+    },
+    "paymentMethod": {
+      "role": "Payment method; card appeared in the supplied example, other values and server behavior unverified",
+      "type": "unknown",
+      "status": [
+        "propagated_to_route",
+        "unknown"
+      ],
+      "evidence": "docs/dedication-evidence.md: user-reported generated payment URL (2026-10-20)"
+    }
+  },
+  "assumptions": [
+    "The three routes and their required/optional parameters are the demo contract from spec §8.1, not confirmed server validation rules.",
+    "Unknown parameters are preserved and warned about, never treated as supported.",
+    "Known parameters outside a route's allowlist are errors under this local contract.",
+    "Custom amount selection does not emit focusOtherAmount: its applicability to these destination routes is unverified.",
+    "Preset amounts use the same local boundaries as custom amounts.",
+    "Campaign and internal labels are limited to 120 characters; this is a demo usability limit, not a server rule.",
+    "Dedication requires recipient name, recipient email and sender name in this builder; message is optional. Name/message length limits and basic email syntax checks are local policies, not verified server rules.",
+    "Dedication details are emitted only to choose-payment, the route in the supplied example. They are not presumed to prefill choose-dedication or propagate through choose-campaign."
+  ],
+  "history": [
+    {
+      "version": "2026-10-20.1",
+      "change": "Add recipient name/email, optional message and sender name to payment links; record the observed paymentMethod parameter.",
+      "reason": "User supplied dedication form labels and a generated payment URL.",
+      "verification": "User-reported URL propagation only; no live delivery, prefill or server validation verified."
+    },
+    {
+      "version": "2026-10-20",
+      "change": "Initial three-route contract, parameter evidence, amount rules, and local return-route allowlist.",
+      "reason": "Make the supplied specification reproducible without claiming live-site verification.",
+      "verification": "Source observations reported by the supplied spec; no live behavior verified."
+    }
+  ],
+  "dedication_fields": {
+    "dedicateToName": {
+      "label": "Name of the person you wish to honor",
+      "type": "text",
+      "max_length": 120,
+      "required": true
+    },
+    "dedicateToEmail": {
+      "label": "Email of the person you wish to honor",
+      "type": "email",
+      "max_length": 254,
+      "required": true
+    },
+    "dedicateToMessage": {
+      "label": "Message (optional)",
+      "type": "text",
+      "max_length": 2000,
+      "required": false
+    },
+    "dedicateFromName": {
+      "label": "Your name as it should appear to the person",
+      "type": "text",
+      "max_length": 120,
+      "required": true
+    }
+  }
+}

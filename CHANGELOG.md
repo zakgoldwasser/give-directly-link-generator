@@ -1,5 +1,14 @@
 # Contract changelog
 
+## 2026-10-20.1 — Expand dedication details
+
+**What changed:** selecting dedication expands recipient name, recipient email, optional message, and sender name fields. The builder validates required details and safely encodes them into payment links, summaries, and scenario exports. Disabling dedication excludes all its details. The original dedication and campaign-selection route schemas remain unchanged. The supplied URL's paymentMethod field is recorded with unverified behavior but is not generated automatically.
+
+**Why:** implement the user's follow-up form request and the four query parameters shown in their generated payment URL.
+
+**Evidence and verification:** [user-reported form labels and URL propagation](docs/dedication-evidence.md), with local unit and browser verification. Required fields, email checks and size limits are local policy. No live delivery, route prefilling or server validation was verified. The original 2026-10-20 contract remains available for historical packages.
+
+
 ## 2026-10-20 — Initial demonstration contract
 
 **What changed:** introduced `choose-payment`, `choose-dedication`, and `choose-campaign` route schemas; required shared frequency, amount, and campaign values; source/status metadata for all ten observed parameters; client amount boundaries and decimal truncation; exact-`true` flags; a local allowlist for return routes; unknown-parameter preservation; and cross-link consistency checks.

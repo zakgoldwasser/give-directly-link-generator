@@ -39,7 +39,21 @@
                 <fieldset><legend>Donation amount <span class="muted">USD</span></legend><div class="choice-row amounts"><label><input type="radio" name="amountPreset" value="30"><span>$30</span></label><label><input type="radio" name="amountPreset" value="60" checked><span>$60</span></label><label><input type="radio" name="amountPreset" value="100"><span>$100</span></label><label><input type="radio" name="amountPreset" value="custom"><span>Custom</span></label></div></fieldset>
                 <div id="custom-amount-field" class="field" hidden><label for="amountChosen">Custom amount (USD)</label><input id="amountChosen" name="amountChosen" inputmode="decimal" placeholder="60.00" maxlength="80" aria-describedby="amount-rules" disabled></div>
                 <p id="amount-rules" class="rule-note">Observed client rule: $1 minimum, below $1,000,000. Extra decimal places are truncated, never rounded.</p>
-                <label class="check-card"><input type="checkbox" id="dedicated" name="dedicated" checked><span><strong>Include a dedication</strong><small>Generate a matching dedication link.</small></span><span class="check-icon" aria-hidden="true">♡</span></label>
+                <label class="check-card"><input type="checkbox" id="dedicated" name="dedicated" aria-controls="dedication-fields"><span><strong>Include a dedication</strong><small>Add the person you wish to honor and your message.</small></span><span class="check-icon" aria-hidden="true">♡</span></label>
+                <fieldset id="dedication-fields" class="dedication-fields" hidden disabled>
+                    <legend>Dedication details</legend>
+                    <p id="dedication-hint" class="rule-note">These details appear in the payment URL and downloaded package. Use fictional names and an example.com email for this public demo.</p>
+                    @foreach($contract['dedication_fields'] as $name => $field)
+                        <div class="field">
+                            <label for="{{ $name }}">{{ $field['label'] }}</label>
+                            @if($name === 'dedicateToMessage')
+                                <textarea id="{{ $name }}" name="{{ $name }}" rows="3" maxlength="{{ $field['max_length'] }}" aria-describedby="dedication-hint" autocomplete="off"></textarea>
+                            @else
+                                <input id="{{ $name }}" name="{{ $name }}" type="{{ $field['type'] }}" maxlength="{{ $field['max_length'] }}" required aria-describedby="dedication-hint" autocomplete="off">
+                            @endif
+                        </div>
+                    @endforeach
+                </fieldset>
                 <details class="advanced"><summary>Campaign selection & attribution <span aria-hidden="true">+</span></summary><div class="advanced-body">
                     <label class="check-line"><input type="checkbox" id="include_campaign" name="include_campaign"> Include a campaign-selection link</label>
                     <div class="field"><label for="back">Return route</label><select id="back" name="back" disabled>@foreach($contract['parameters']['back']['values'] as $route)<option value="{{ $route }}">{{ $contract['routes'][$route]['label'] }}</option>@endforeach</select></div>

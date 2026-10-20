@@ -100,6 +100,37 @@ export function generatePackage(input, contract, now = new Date()) {
             'Select an allowlisted return route.',
             'back',
         );
+    const dedication = {};
+    if (input.dedicated === true) {
+        for (const [name, rule] of Object.entries(contract.dedication_fields ?? {})) {
+            const value = String(input[name] ?? '').trim();
+            if (rule.required && !value)
+                fail(
+                    'REQUIRED_DEDICATION_FIELD',
+                    rule.label,
+                    value,
+                    'Enter ' + rule.label.toLowerCase() + '.',
+                    name,
+                );
+            if (value.length > rule.max_length)
+                fail(
+                    'DEDICATION_TOO_LONG',
+                    rule.max_length,
+                    value.length,
+                    rule.label + ' must be at most ' + rule.max_length + ' characters.',
+                    name,
+                );
+            if (value && rule.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+                fail(
+                    'INVALID_EMAIL',
+                    'A valid email address',
+                    value,
+                    'Enter a valid email address for the person you wish to honor.',
+                    name,
+                );
+            if (value) dedication[name] = value;
+        }
+    }
     const extra = input.attribution ?? [];
     const names = new Set();
     for (const [name, value] of extra) {
@@ -142,7 +173,7 @@ export function generatePackage(input, contract, now = new Date()) {
     if (errors.length) throw new InputError(errors);
 
     const values = { frequency: input.frequency, amountChosen: amount, campaignName: campaign };
-    if (input.dedicated) values.dedicated = 'true';
+    if (input.dedicated) Object.assign(values, { dedicated: 'true' }, dedication);
     if (input.include_campaign) values.back = input.back;
     const selected = ['choose-payment'];
     if (input.dedicated) selected.push('choose-dedication');
@@ -329,6 +360,35 @@ export function lintPackage(links, contract) {
                 continue;
             }
             const rule = contract.parameters[name];
+            if (owns(contract.dedication_fields ?? {}, name)) {
+                if (params.get('dedicated') !== 'true')
+                    add(
+                        'DEDICATION_NOT_ENABLED',
+                        'error',
+                        'dedicated=true',
+                        params.get('dedicated'),
+                        'Dedication details require the dedication flag.',
+                        'Enable dedication or remove its details.',
+                    );
+                if (value.length > rule.max_length)
+                    add(
+                        'DEDICATION_TOO_LONG',
+                        'error',
+                        rule.max_length,
+                        value.length,
+                        name + ' exceeds the local length limit.',
+                        'Shorten the field in the builder.',
+                    );
+                if (rule.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+                    add(
+                        'INVALID_EMAIL',
+                        'error',
+                        'A valid email address',
+                        value,
+                        'The dedication recipient email is malformed.',
+                        'Correct the recipient email in the builder.',
+                    );
+            }
             if (!allowed.includes(name)) {
                 const severity = name === 'utm_source' ? 'warning' : 'error';
                 add(

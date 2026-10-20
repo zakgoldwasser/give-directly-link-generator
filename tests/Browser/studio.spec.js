@@ -12,10 +12,21 @@ test.beforeEach(async ({ page }) => {
 });
 const navigate = (page, view) => page.locator(`[data-view="${view}"]`).click();
 const generate = (page) => page.getByRole('button', { name: 'Generate link package' }).click();
+const fillDedication = async (page) => {
+    await page.getByLabel('Include a dedication').check();
+    await page.getByLabel('Name of the person you wish to honor', { exact: true }).fill('Example Honoree');
+    await page
+        .getByLabel('Email of the person you wish to honor', { exact: true })
+        .fill('honoree@example.com');
+    await page
+        .getByLabel('Your name as it should appear to the person', { exact: true })
+        .fill('Example Sender');
+};
 
 test('generates, inspects, validates, demonstrates a broken link and downloads a safe scenario', async ({
     page,
 }, testInfo) => {
+    await fillDedication(page);
     const failures = [];
     page.on('pageerror', (error) => failures.push(error.message));
     await page.screenshot({
@@ -39,7 +50,7 @@ test('generates, inspects, validates, demonstrates a broken link and downloads a
     const packageDownload = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Download package' }).click();
     const pkg = JSON.parse(await readFile(await (await packageDownload).path(), 'utf8'));
-    expect(pkg.contract_version).toBe('2026-10-20');
+    expect(pkg.contract_version).toBe('2026-10-20.1');
     expect(pkg.test_scenario.stop_before_payment).toBe(true);
     await navigate(page, 'validation');
     await expect(page.locator('#lint-summary')).toContainText('0 errors · 0 warnings');
@@ -59,6 +70,9 @@ test('generates, inspects, validates, demonstrates a broken link and downloads a
         amountChosen: '60',
         campaignName: 'Example Year-End Campaign',
         dedicated: 'true',
+        dedicateToName: 'Example Honoree',
+        dedicateToEmail: 'honoree@example.com',
+        dedicateFromName: 'Example Sender',
     });
     expect(scenario.links).toHaveLength(2);
     expect(failures).toEqual([]);
@@ -80,6 +94,7 @@ test('rejects bad custom amounts and truncates decimals without rounding', async
 });
 
 test('preserves encoded Unicode and unknown attribution without interpreting markup', async ({ page }) => {
+    await fillDedication(page);
     const campaign = 'Example & café + <img src=x onerror=alert(1)> 🌱';
     await page.getByLabel('Campaign name', { exact: false }).fill(campaign);
     await page.locator('summary').filter({ hasText: 'Campaign selection & attribution' }).click();
@@ -163,4 +178,55 @@ test('copy action writes the URL and offers selection when clipboard access is u
     expect(
         await page.getByLabel('Payment link URL').evaluate((node) => node.selectionEnd - node.selectionStart),
     ).toBe(expected.length);
+});
+
+test('dedication expands on selection, validates fields, and excludes details when switched off', async ({
+    page,
+}, testInfo) => {
+    const toggle = page.getByLabel('Include a dedication');
+    await expect(toggle).not.toBeChecked();
+    await expect(page.locator('#dedication-fields')).toBeHidden();
+    await toggle.focus();
+    await page.keyboard.press('Space');
+    await expect(page.locator('#dedication-fields')).toBeVisible();
+    await page.keyboard.press('Tab');
+    await expect(page.locator('#dedicateToName')).toBeFocused();
+    await generate(page);
+    await expect(page.locator('#form-errors')).toContainText('name of the person');
+    await expect(page.locator('#form-errors')).toContainText('email of the person');
+    await fillDedication(page);
+    await page.locator('#dedicateToEmail').fill('bad-address');
+    await generate(page);
+    await expect(page.locator('#form-errors')).toContainText('valid email address');
+    await page.locator('#dedicateToEmail').fill('example+honoree@example.com');
+    await page.locator('#dedicateToName').fill('Example & café');
+    await page.getByLabel('Message (optional)', { exact: true }).fill('Thank you & welcome!\n<example> 🌱');
+    await page.screenshot({
+        path: testInfo.outputPath('dedication-expanded.png'),
+        fullPage: true,
+        animations: 'disabled',
+    });
+    await generate(page);
+    const payment = new URL(await page.getByLabel('Payment link URL').inputValue());
+    expect(payment.searchParams.get('dedicateToEmail')).toBe('example+honoree@example.com');
+    expect(payment.searchParams.get('dedicateToName')).toBe('Example & café');
+    expect(payment.searchParams.get('dedicateToMessage')).toBe('Thank you & welcome!\n<example> 🌱');
+    await expect(page.locator('#parameter-rows')).toContainText('Example & café');
+    await expect(page.locator('#parameter-rows example')).toHaveCount(0);
+    await navigate(page, 'create');
+    await toggle.uncheck();
+    await expect(page.locator('#dedication-fields')).toBeHidden();
+    await expect(page.locator('#dedicateToName')).toBeDisabled();
+    await generate(page);
+    const plain = new URL(await page.getByLabel('Payment link URL').inputValue());
+    for (const name of [
+        'dedicated',
+        'dedicateToName',
+        'dedicateToEmail',
+        'dedicateToMessage',
+        'dedicateFromName',
+    ])
+        expect(plain.searchParams.has(name)).toBe(false);
+    await navigate(page, 'scenario');
+    await expect(page.locator('#scenario-json')).not.toContainText('example+honoree@example.com');
 });
