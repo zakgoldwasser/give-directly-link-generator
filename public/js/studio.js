@@ -180,9 +180,19 @@ function renderResults(prefix, parameters, results) {
         );
         cards.append(card);
     }
+    const firstError = cards.querySelector('.error');
+    if (firstError) {
+        firstError.id = `${prefix}-first-error`;
+        firstError.tabIndex = -1;
+    }
+    return errors;
 }
+$('validation-status').addEventListener('click', (event) => {
+    if (event.target.closest('a')) $('validate-first-error')?.focus();
+});
 $('lint-input').addEventListener('input', () => {
     $('validate-output').hidden = true;
+    $('validation-status').classList.remove('has-errors');
     $('validate-parameters').replaceChildren();
     $('validate-lint-results').replaceChildren();
     $('validate-lint-summary').textContent = '';
@@ -190,6 +200,7 @@ $('lint-input').addEventListener('input', () => {
 });
 $('validator').addEventListener('submit', (event) => {
     event.preventDefault();
+    $('validation-status').classList.remove('has-errors');
     const links = $('lint-input')
         .value.split(/\r?\n/)
         .map((line) => line.trim())
@@ -199,10 +210,20 @@ $('validator').addEventListener('submit', (event) => {
         $('validation-status').textContent = 'Use at most 20 links and 50,000 characters per check.';
         return;
     }
-    renderResults('validate', summarizeLinks(links, contract), lintPackage(links, contract));
+    const errors = renderResults('validate', summarizeLinks(links, contract), lintPackage(links, contract));
     $('validate-output').hidden = false;
-    $('validation-status').textContent = 'Parameters and validation results are below.';
-    $('validate-output-title').focus();
+    const status = $('validation-status');
+    if (errors) {
+        status.classList.add('has-errors');
+        status.textContent = `Validation found ${errors} ${errors === 1 ? 'error' : 'errors'}. `;
+        const link = element('a', 'View errors');
+        link.href = '#validate-first-error';
+        status.append(link);
+        $('lint').focus();
+    } else {
+        status.textContent = 'Parameters and validation results are below.';
+        $('validate-output-title').focus();
+    }
 });
 $('download-package').addEventListener('click', () => {
     if (!currentPackage) return;

@@ -231,6 +231,26 @@ h1 {
     color: var(--green);
     margin: 0 0 16px;
 }
+.validation-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+.validation-actions .status {
+    margin: 0;
+}
+.validation-actions .has-errors {
+    color: var(--red);
+}
+.validation-actions a {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+}
+.lint-item[id] {
+    scroll-margin-top: 24px;
+}
 .status:empty {
     display: none;
 }

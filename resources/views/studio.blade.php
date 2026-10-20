@@ -73,8 +73,10 @@
                 <textarea id="lint-input" rows="4" spellcheck="false" placeholder="https://donate.givedirectly.org/choose-payment?..." aria-describedby="lint-hint" maxlength="50000"></textarea>
                 <small id="lint-hint">Paste a complete URL. To compare links, put one on each line. Links are checked locally and are never opened or fetched.</small>
             </div>
-            <button type="submit" id="lint" class="button primary" disabled>Validate link</button>
-            <p id="validation-status" class="status" role="status"></p>
+            <div class="validation-actions">
+                <button type="submit" id="lint" class="button primary" disabled>Validate link</button>
+                <p id="validation-status" class="status" role="status"></p>
+            </div>
         </form>
         <section id="validate-output" class="inline-output" aria-labelledby="validate-output-title" hidden>
             <div class="section-heading"><h2 id="validate-output-title" tabindex="-1">Link details</h2></div>

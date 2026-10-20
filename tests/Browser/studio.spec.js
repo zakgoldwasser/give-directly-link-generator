@@ -79,6 +79,7 @@ test('pasted link displays decoded parameters and validation results directly un
     await expect(page.locator('#validate-parameters')).toContainText('<img src=x onerror=alert(1)>');
     await expect(page.locator('#validate-parameters img')).toHaveCount(0);
     await expect(page.locator('#validate-lint-summary')).toContainText('0 errors · 1 warnings');
+    await expect(page.getByRole('link', { name: 'View errors' })).toHaveCount(0);
     await expect(page.locator('#validate-lint-results')).toContainText('UNKNOWN_PARAMETER');
     expect(
         await page
@@ -106,6 +107,32 @@ test('pasted link displays decoded parameters and validation results directly un
     });
 });
 
+test('validation errors appear beside the button and link to the first error', async ({ page }, testInfo) => {
+    await mode(page, 'validate');
+    await page
+        .getByLabel('Link to validate')
+        .fill(paymentUrl.replace('monthly', 'weekly') + '&utm_campaign=example&amountChosen=100');
+    await validate(page);
+    const count = await page.locator('#validate-lint-results .error').count();
+    expect(count).toBeGreaterThan(1);
+    await expect(page.locator('#validation-status')).toHaveText(
+        `Validation found ${count} errors. View errors`,
+    );
+    await expect(page.locator('#lint')).toBeFocused();
+    await expect(page.locator('#validation-status')).toBeInViewport();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({
+        path: testInfo.outputPath('validation-error-notice.png'),
+        animations: 'disabled',
+    });
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'View errors' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/#validate-first-error$/);
+    await expect(page.locator('#validate-lint-results .error').first()).toBeFocused();
+    await expect(page.locator('#validate-first-error')).toBeInViewport();
+});
+
 test('manual validation preserves duplicate values and detects cross-link differences', async ({ page }) => {
     await mode(page, 'validate');
     await page
@@ -127,12 +154,15 @@ test('empty and malformed input show useful errors and edits clear stale paramet
     await mode(page, 'validate');
     await validate(page);
     await expect(page.locator('#validate-lint-results')).toContainText('EMPTY_PACKAGE');
+    await expect(page.locator('#validation-status')).toHaveText('Validation found 1 error. View errors');
     await expect(page.locator('#validate-parameters-empty')).toBeVisible();
     await page.getByLabel('Link to validate').fill('not a URL');
     await validate(page);
     await expect(page.locator('#validate-lint-results')).toContainText('INVALID_URL');
     await page.getByLabel('Link to validate').fill(paymentUrl);
     await expect(page.locator('#validate-output')).toBeHidden();
+    await expect(page.getByRole('link', { name: 'View errors' })).toHaveCount(0);
+    await expect(page.locator('#validation-status')).not.toHaveClass(/has-errors/);
     await expect(page.locator('#validate-parameters')).toBeEmpty();
     await expect(page.locator('#validate-lint-results')).toBeEmpty();
     await validate(page);
