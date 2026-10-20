@@ -6,7 +6,7 @@ This is not affiliated with or approved by GiveDirectly. It does not scrape, fet
 
 ## Run locally
 
-Requirements: PHP 8.4+ with the extensions required by Composer, Composer 2, and a modern browser. Node.js 22+ is only needed for development checks. No database, object storage, frontend build, or npm packages are needed to serve the application.
+Requirements: PHP 8.4+ with the extensions required by Composer, Composer 2, and a modern browser. Node.js 22+ is needed for development checks and the optional static deployment tooling. No database, object storage, frontend build, or npm packages are needed to serve the application.
 
 ```sh
 composer install
@@ -24,7 +24,7 @@ For this workspace, portable PHP and Composer were downloaded into the ignored `
 & .tools/php/php.exe artisan serve --host=127.0.0.1 --port=8000
 ```
 
-The portable tools are local conveniences, not distributed dependencies. Other clones should install PHP and Composer normally. Point a production web server at `public/`, keep `APP_DEBUG=false`, and allow Laravel to write its compiled views and bootstrap cache. There is no deployment or publishing integration.
+The portable tools are local conveniences, not distributed dependencies. Other clones should install PHP and Composer normally. Point a production web server at `public/`, keep `APP_DEBUG=false`, and allow Laravel to write its compiled views and bootstrap cache. For static hosting on Vercel, use the [static deployment guide](docs/vercel-deployment.md). Laravel and Blade still produce the page; Vercel serves the exported files without PHP.
 
 ## One page, two modes
 
@@ -67,6 +67,7 @@ npm ci
 npm test
 npx playwright install chromium
 npm run test:browser
+npm run test:static
 npm run format:check
 php artisan view:cache
 composer validate --strict
@@ -81,9 +82,9 @@ npm.cmd run test:browser
 ```
 
 - Node tests exercise the same domain module shipped to the browser: amount boundaries/truncation, encoding/Unicode, valid and invalid frequency/flags, unknown and duplicate parameters, route rules, consistency, manual parameter inspection, and broken fixtures.
-- PHPUnit tests exercise Laravel rendering, exact contract loading, privacy/security headers, absence of campaign/file-write routes, and non-reflection of query input.
+- PHPUnit tests exercise Laravel rendering, exact contract loading, privacy/security headers, absence of campaign/file-write routes, non-reflection of query input, and static export contents, headers, rebuilds, and failed-render handling.
 - Playwright tests exercise desktop and mobile workflows, exports, clipboard behavior, form errors, literal rendering of untrusted text, stale-package invalidation, keyboard navigation, and layout overflow. External network requests fail the browser tests.
-- Screenshots and failure traces are written to ignored `test-results/`. CI runs the same checks against the local application only.
+- Screenshots and failure traces are written to ignored `test-results/`. CI runs the same checks against Laravel and the static export. `npm run test:static` builds the export and starts its local preview on port 8001.
 
 The intentionally broken static package is in `tests/fixtures/broken-package.json`. Its second link lacks `campaignName`; the linter reports both `MISSING_PARAMETER` and `CROSS_LINK_MISMATCH`. This is a regression-test fixture, not a separate product workflow.
 

@@ -5,10 +5,16 @@
     "scripts": {
         "test": "node --test tests/Unit/*.test.js",
         "test:browser": "playwright test",
-        "format:check": "prettier --check public/css/*.css public/js/*.js tests/Unit/*.js tests/Browser/*.js playwright.config.js package.json"
+        "format:check": "prettier --check public/css/*.css public/js/*.js scripts/*.mjs tests/Unit/*.js tests/Browser/*.js playwright*.config.js package.json vercel.json",
+        "build": "node scripts/build-static.mjs",
+        "preview:static": "node scripts/preview-static.mjs",
+        "test:static": "npm run build && playwright test --config playwright.static.config.js",
+        "deploy:preview": "vercel deploy --prebuilt",
+        "deploy:production": "vercel deploy --prebuilt --prod"
     },
     "devDependencies": {
         "@playwright/test": "^1.64.1",
-        "prettier": "^3.9.10"
+        "prettier": "^3.9.10",
+        "vercel": "64.7.0"
     }
 }

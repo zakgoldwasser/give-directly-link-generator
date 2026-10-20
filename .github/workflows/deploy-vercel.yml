@@ -1,0 +1,61 @@
+name: Deploy static site to Vercel
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment destination
+        type: choice
+        options: [preview, production]
+        default: preview
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: vercel-static-${{ inputs.target }}
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, curl, openssl
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: composer install --no-interaction --prefer-dist
+      - run: npm ci
+      - run: composer validate --strict
+      - run: composer test
+      - run: npm test
+      - run: npm run format:check
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:static
+      - name: Upload verified static output
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DEPLOY_TARGET: ${{ inputs.target }}
+        shell: bash
+        run: |
+          for name in VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_TOKEN; do
+            if [[ -z "${!name}" ]]; then
+              echo "Missing GitHub Actions secret: $name" >&2
+              exit 1
+            fi
+          done
+          args=(deploy --prebuilt --yes --token "$VERCEL_TOKEN")
+          if [[ "$DEPLOY_TARGET" == "production" ]]; then args+=(--prod); fi
+          npx --no-install vercel "${args[@]}"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: static-browser-test-results
+          path: test-results/static/
+          retention-days: 7
