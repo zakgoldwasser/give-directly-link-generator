@@ -1,0 +1,6 @@
+{
+  "name": "campaign-link-studio",
+  "private": true,
+  "type": "module",
+  "scripts": {"test": "node --test tests/Unit/*.test.js", "test:browser": "playwright test"}
+}
