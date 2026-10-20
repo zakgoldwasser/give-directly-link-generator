@@ -10,3 +10,5 @@
 !/storage/logs/.gitkeep
 /storage/framework/views/*
 !/storage/framework/views/.gitkeep
+/.vercel/
+/debug.log
