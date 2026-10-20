@@ -1,0 +1,12 @@
+/.env
+/.tools/
+/vendor/
+/node_modules/
+/.phpunit.cache/
+/test-results/
+/playwright-report/
+/bootstrap/cache/*.php
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/framework/views/*
+!/storage/framework/views/.gitkeep
