@@ -1,0 +1,8 @@
+{
+    "contract_version": "2026-10-20",
+    "description": "Deliberately broken: the dedication link is missing the shared campaign name.",
+    "generated_links": [
+        {"route": "choose-payment", "label": "Payment", "url": "https://donate.givedirectly.org/choose-payment?frequency=monthly&amountChosen=60&campaignName=Example+Year-End+Campaign&dedicated=true"},
+        {"route": "choose-dedication", "label": "Dedication", "url": "https://donate.givedirectly.org/choose-dedication?frequency=monthly&amountChosen=60&dedicated=true"}
+    ]
+}
