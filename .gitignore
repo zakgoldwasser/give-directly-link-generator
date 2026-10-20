@@ -12,3 +12,5 @@
 !/storage/framework/views/.gitkeep
 /.vercel/
 /debug.log
+.vercel
+.env*
