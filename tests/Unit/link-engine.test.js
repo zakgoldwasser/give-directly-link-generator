@@ -91,23 +91,22 @@ for (const [input, expected] of [
         );
     });
 }
-test('rejects invalid frequency, campaign, flag and return route', () => {
+test('rejects invalid frequency, campaign and flag', () => {
     for (const changes of [
         { frequency: 'weekly' },
         { campaignName: '  ' },
         { campaignName: 'x'.repeat(121) },
         { dedicated: 'false' },
-        { include_campaign: true, back: 'https://evil.example' },
     ])
         assert.throws(() => build(changes), InputError);
 });
-test('campaign selection includes only route-specific values', () => {
-    const pkg = build({ include_campaign: true, back: 'choose-dedication' });
-    const params = new URL(pkg.generated_links[2].url).searchParams;
-    assert.equal(params.get('back'), 'choose-dedication');
-    assert.equal(params.has('dedicated'), false);
-    assert.equal(new URL(pkg.generated_links[0].url).searchParams.has('back'), false);
-    assert.equal(errors(pkg.lint_results).length, 0);
+test('does not generate a campaign-selection link', () => {
+    const pkg = build();
+    assert.deepEqual(
+        pkg.generated_links.map((link) => link.route),
+        ['choose-payment', 'choose-dedication'],
+    );
+    assert.ok(pkg.generated_links.every((link) => !new URL(link.url).searchParams.has('back')));
 });
 test('preserves unknown attribution and warns on every affected route', () => {
     const pkg = build({
@@ -243,7 +242,7 @@ test('dedication details are encoded only on the payment route and included in e
         dedicateFromName: 'Example + Sender',
         dedicateToMessage: 'Thank you & welcome!\n<example> 🌱',
     };
-    const pkg = build({ ...details, include_campaign: true, back: 'choose-payment' });
+    const pkg = build(details);
     const payment = new URL(pkg.generated_links[0].url);
     for (const [name, value] of Object.entries(details)) {
         assert.equal(payment.searchParams.get(name), value);

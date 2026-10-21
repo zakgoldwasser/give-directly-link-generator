@@ -50,10 +50,18 @@
                         </div>
                     @endforeach
                 </fieldset>
-                <details class="advanced"><summary>Campaign selection & attribution <span aria-hidden="true">+</span></summary><div class="advanced-body">
-                    <label class="check-line"><input type="checkbox" id="include_campaign" name="include_campaign"> Include a campaign-selection link</label>
-                    <div class="field"><label for="back">Return route</label><select id="back" name="back" disabled>@foreach($contract['parameters']['back']['values'] as $route)<option value="{{ $route }}">{{ $contract['routes'][$route]['label'] }}</option>@endforeach</select></div>
-                    <div class="field"><label for="attribution">Optional attribution</label><textarea id="attribution" name="attribution" rows="3" placeholder="utm_campaign=example-year-end" maxlength="11000" aria-describedby="attribution-hint"></textarea><small id="attribution-hint">One key=value per line. Values are plain text. Unknown parameters are preserved with an unverified warning.</small></div>
+                <details class="advanced"><summary>Attribution <span aria-hidden="true">+</span></summary><div class="advanced-body">
+                    <p id="attribution-hint" class="rule-note">Optional UTM values are added to every generated link. Leave a field blank to omit it. Additional parameters use one key=value per line.</p>
+                    <div class="field-row">
+                        <div class="field"><label for="utm_source">utm_source</label><input id="utm_source" name="utm_source" type="text" maxlength="500" autocomplete="off" aria-describedby="attribution-hint"></div>
+                        <div class="field"><label for="utm_medium">utm_medium</label><input id="utm_medium" name="utm_medium" type="text" maxlength="500" autocomplete="off" aria-describedby="attribution-hint"></div>
+                    </div>
+                    <div class="field"><label for="utm_campaign">utm_campaign</label><input id="utm_campaign" name="utm_campaign" type="text" maxlength="500" autocomplete="off" placeholder="example-year-end" aria-describedby="attribution-hint"></div>
+                    <div class="field-row">
+                        <div class="field"><label for="utm_term">utm_term</label><input id="utm_term" name="utm_term" type="text" maxlength="500" autocomplete="off" aria-describedby="attribution-hint"></div>
+                        <div class="field"><label for="utm_content">utm_content</label><input id="utm_content" name="utm_content" type="text" maxlength="500" autocomplete="off" aria-describedby="attribution-hint"></div>
+                    </div>
+                    <div class="field"><label for="attribution">Additional parameters</label><textarea id="attribution" name="attribution" rows="3" placeholder="ref=newsletter" maxlength="11000" aria-describedby="attribution-hint"></textarea><small>One key=value per line. Values are plain text. Unknown parameters are preserved with an unverified warning.</small></div>
                 </div></details>
                 <button id="generate" class="button primary full" type="submit" disabled>Generate link package <span aria-hidden="true">↗</span></button>
                 <p class="privacy-note">Processed in your browser. No campaign data is stored.</p>

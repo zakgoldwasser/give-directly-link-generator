@@ -36,12 +36,20 @@ form.addEventListener('input', (event) => {
     event.target.removeAttribute('aria-invalid');
     $('form-errors').hidden = true;
 });
+const utmFields = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+function collectAttribution() {
+    const pairs = [];
+    for (const name of utmFields) {
+        const value = $(name).value.trim();
+        if (value) pairs.push([name, value]);
+    }
+    return [...pairs, ...parseAttribution($('attribution').value)];
+}
 form.addEventListener('change', () => {
     invalidatePackage();
     const custom = form.elements.amountPreset.value === 'custom';
     $('custom-amount-field').hidden = !custom;
     $('amountChosen').disabled = !custom;
-    $('back').disabled = !$('include_campaign').checked;
     $('dedication-fields').hidden = !$('dedicated').checked;
     $('dedication-fields').disabled = !$('dedicated').checked;
 });
@@ -64,9 +72,7 @@ form.addEventListener('submit', (event) => {
                 ...Object.fromEntries(
                     Object.keys(contract.dedication_fields).map((name) => [name, $(name).value]),
                 ),
-                include_campaign: $('include_campaign').checked,
-                back: $('back').value,
-                attribution: parseAttribution($('attribution').value),
+                attribution: collectAttribution(),
             },
             contract,
         );

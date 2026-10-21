@@ -16,6 +16,7 @@ final class StudioTest extends TestCase
             $response->assertSee('id="view-'.$view.'"', false);
         }
         $response->assertSee('Create Link')->assertSee('Validate link')->assertDontSee('Test scenario')->assertDontSee('id="view-review"', false);
+        $response->assertSee('>Attribution <', false)->assertSee('id="utm_campaign"', false)->assertDontSee('Include a campaign-selection link')->assertDontSee('id="back"', false)->assertDontSee('id="include_campaign"', false);
         $dom = new DOMDocument;
         @$dom->loadHTML($response->getContent());
         $node = (new DOMXPath($dom))->query('//*[@id="contract-data"]')->item(0);

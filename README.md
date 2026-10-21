@@ -35,15 +35,15 @@ Evidence and assumptions are available in a collapsed section at the bottom of t
 
 The two modes preserve their own input and result state. Changes to campaign settings invalidate its generated package and export without overwriting pasted links. Editing a pasted link clears its old parameters and results until it is validated again.
 
-Internal and destination labels are metadata only. A destination label does **not** select a live donation program. Unknown attribution is preserved in every generated link, visibly marked unverified, and cannot overwrite reserved donation parameters. Attribution values are plain text, one `key=value` per line; ampersands and equals signs in values are encoded safely.
+Internal and destination labels are metadata only. A destination label does **not** select a live donation program. Optional UTM fields (`utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`) and additional attribution lines are preserved in every generated link, visibly marked unverified when outside the verified contract, and cannot overwrite reserved donation parameters. Additional attribution values are plain text, one `key=value` per line; ampersands and equals signs in values are encoded safely.
 
 ## Evidence and uncertainty
 
 The current version is `2026-10-20.1`, stored in `resources/contracts/2026-10-20.1.json`; the initial `2026-10-20` version is retained for historical packages. Its provenance is the supplied spec's summaries of HTML and JavaScript. **The original HTML/JavaScript evidence excerpts were not provided in this repository.** References therefore point to the relevant spec sections rather than invented source filenames or line numbers. The dedication extension additionally uses the user-reported form labels and payment URL documented in [dedication evidence](docs/dedication-evidence.md). These fields are marked `propagated_to_route`, without claiming independently verified server behavior.
 
-- **Source-observed (reported by the spec):** `once`/`monthly`; client writes to `frequency`, `amountChosen`, and `dedicated`; custom amounts from $1 to below $1,000,000; truncation to two decimal places; campaign/return-route propagation.
+- **Source-observed (reported by the spec):** `once`/`monthly`; client writes to `frequency`, `amountChosen`, and `dedicated`; custom amounts from $1 to below $1,000,000; truncation to two decimal places; campaign name propagation.
 - **Behavior-verified on the live donation site:** **none**. No parameter has `visible_effect_verified` or `server_behavior_verified` status. Passing local tests proves this application's behavior against its fixtures, not the destination site's behavior.
-- **Local policies/assumptions:** the three route allowlists, required campaign name, selected return routes, applying the amount limits to presets, 120-character labels, attribution size limits, and strict plain-decimal input. These are not asserted server validation rules.
+- **Local policies/assumptions:** the three route allowlists, required campaign name, applying the amount limits to presets, 120-character labels, attribution size limits, and strict plain-decimal input. These are not asserted server validation rules.
 - **Incomplete behavior:** `amountBilled` and `utm_source` retain uncertainty warnings. The special instrumentation use of `utm_source=automated_browser_test` is described, not automatically added.
 - **Route applicability unknown:** `focusOtherAmount` is recorded in the evidence register and its exact-`true` rule is linted, but it is not emitted to the three routes because none allow it in the supplied route contract.
 - **Analytics-only:** `amount` and `donationId` are not offered as donation inputs and are rejected by the route linter.

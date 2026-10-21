@@ -1,5 +1,9 @@
 # Contract changelog
 
+## Interface update — Attribution only
+
+Removed campaign-selection link generation and the return-route control from the builder. The collapsible advanced section is now Attribution, with individual fields for common UTM parameters plus an optional additional key=value list. The parameter contract remains 2026-10-20.1 so pasted `choose-campaign` / `back` URLs can still be linted; the builder no longer emits them.
+
 ## Interface update — Create or Validate
 
 Replaced the five-view workflow with two modes on one page. Both generated and manually entered links show decoded parameter tables followed by validation results inline. Removed test scenario generation, identifiers, copy/download actions, and the scenario property from package exports. The evidence register remains in a collapsed section. The parameter contract remains 2026-10-20.1 because route and parameter rules have not changed.

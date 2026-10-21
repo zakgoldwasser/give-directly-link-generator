@@ -88,18 +88,8 @@ export function generatePackage(input, contract, now = new Date()) {
     } catch (error) {
         fail('INVALID_AMOUNT', '$1 to below $1,000,000', input.amountChosen, error.message, 'amountChosen');
     }
-    for (const flag of ['dedicated', 'include_campaign']) {
-        if (input[flag] !== undefined && typeof input[flag] !== 'boolean')
-            fail('INVALID_FLAG', 'Boolean', input[flag], 'Use the checkbox to choose this option.', flag);
-    }
-    if (input.include_campaign && !contract.parameters.back.values.includes(input.back))
-        fail(
-            'INVALID_BACK',
-            contract.parameters.back.values,
-            input.back,
-            'Select an allowlisted return route.',
-            'back',
-        );
+    if (input.dedicated !== undefined && typeof input.dedicated !== 'boolean')
+        fail('INVALID_FLAG', 'Boolean', input.dedicated, 'Use the checkbox to choose this option.', 'dedicated');
     const dedication = {};
     if (input.dedicated === true) {
         for (const [name, rule] of Object.entries(contract.dedication_fields ?? {})) {
@@ -174,10 +164,8 @@ export function generatePackage(input, contract, now = new Date()) {
 
     const values = { frequency: input.frequency, amountChosen: amount, campaignName: campaign };
     if (input.dedicated) Object.assign(values, { dedicated: 'true' }, dedication);
-    if (input.include_campaign) values.back = input.back;
     const selected = ['choose-payment'];
     if (input.dedicated) selected.push('choose-dedication');
-    if (input.include_campaign) selected.push('choose-campaign');
     const generated_links = selected.map((route) => {
         const schema = contract.routes[route];
         const url = new URL(`/${route}`, contract.origin);
