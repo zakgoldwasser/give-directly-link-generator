@@ -42,7 +42,6 @@ Internal and destination labels are metadata only. A destination label does **no
 The current version is `2026-10-20.1`, stored in `resources/contracts/2026-10-20.1.json`; the initial `2026-10-20` version is retained for historical packages. Its provenance is the supplied spec's summaries of HTML and JavaScript. **The original HTML/JavaScript evidence excerpts were not provided in this repository.** References therefore point to the relevant spec sections rather than invented source filenames or line numbers. The dedication extension additionally uses the user-reported form labels and payment URL documented in [dedication evidence](docs/dedication-evidence.md). These fields are marked `propagated_to_route`, without claiming independently verified server behavior.
 
 - **Source-observed (reported by the spec):** `once`/`monthly`; client writes to `frequency`, `amountChosen`, and `dedicated`; custom amounts from $1 to below $1,000,000; truncation to two decimal places; campaign name propagation.
-- **Behavior-verified on the live donation site:** **none**. No parameter has `visible_effect_verified` or `server_behavior_verified` status. Passing local tests proves this application's behavior against its fixtures, not the destination site's behavior.
 - **Local policies/assumptions:** the three route allowlists, required campaign name, applying the amount limits to presets, 120-character labels, attribution size limits, and strict plain-decimal input. These are not asserted server validation rules.
 - **Incomplete behavior:** `amountBilled` and `utm_source` retain uncertainty warnings. The special instrumentation use of `utm_source=automated_browser_test` is described, not automatically added.
 - **Route applicability unknown:** `focusOtherAmount` is recorded in the evidence register and its exact-`true` rule is linted, but it is not emitted to the three routes because none allow it in the supplied route contract.
@@ -95,5 +94,3 @@ The intentionally broken static package is in `tests/fixtures/broken-package.jso
 3. Switch to **Validate link**, paste that URL and validate it. Inspect its decoded values and results below the input.
 4. Add a duplicate amount parameter or change frequency to weekly and validate again to see the corresponding errors.
 5. Expand evidence and assumptions to see what is reported in the source and what remains unverified.
-
-Production server acceptance, real campaign validity, and live navigation behavior remain outside this demo's claims.
